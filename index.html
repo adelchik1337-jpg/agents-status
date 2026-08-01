@@ -77,6 +77,7 @@
   td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
   tr:last-child td{border-bottom:0}
   td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--dim)}
+  td.stamp{font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--dim)}
   .tag{display:inline-flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
   .t-ok{color:var(--ok)} .t-bad{color:var(--bad)} .t-run{color:var(--run)} .t-idle{color:var(--dim)}
   .wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
@@ -118,7 +119,7 @@
   <div id="body"></div>
 
   <footer>
-    <p>Страница перечитывает данные каждые 20 секунд; счётчики идут в реальном времени. Данные пишет домашний компьютер после каждого запуска агента и раз в 15 минут для проверки связи.</p>
+    <p>Страница перечитывает данные каждые 20 секунд; счётчики идут в реальном времени. Данные пишет домашний компьютер — в начале и в конце каждого запуска агента, а между запусками раз в 20 минут, чтобы было видно, что связь жива.</p>
     <p>Здесь только работа агентов: запуски, результаты и имена созданных файлов. Выручки, числа клиентов, содержимого документов и доступов к серверу на этой странице нет.</p>
   </footer>
 </div>
@@ -143,7 +144,7 @@ const SYS = {
 // потому что скрипт обязан быть ASCII — Windows PowerShell 5.1 читает файл как ANSI.
 const SYS_TEXT = {
   git: {
-    name: 'Работа зафиксирована',
+    name: 'Фиксация работы',
     good: () => 'всё сохранено в репозитории, потерять нечего',
     warning: n => n + ' ' + plural(n,'файл ждёт','файла ждут','файлов ждут') + ' фиксации в репозитории'
   },
@@ -255,7 +256,7 @@ function render(){
       runs.map(r => {
         const st = STATUS[r.status] || STATUS.never;
         const nm = (AGENTS[r.agent] || {}).title || r.agent;
-        return '<tr><td class="num">' + esc(when(r.finishedAt || r.startedAt)) + '</td>' +
+        return '<tr><td class="stamp">' + esc(when(r.finishedAt || r.startedAt)) + '</td>' +
           '<td>' + esc(nm) + '</td>' +
           '<td><span class="tag ' + st.tag + '">' + st.g + ' ' + esc(r.status === 'ok' ? 'Успешно' : (r.status === 'running' ? 'Идёт' : 'Ошибка')) + '</span></td>' +
           '<td class="num">' + esc(r.seconds != null ? dur(r.seconds) : '—') + '</td></tr>';
