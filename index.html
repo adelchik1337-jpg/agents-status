@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>Агенты «Универсал КП» — статус</title>
+<style>
+  :root{
+    --bg:#f4f5f7; --panel:#fff; --line:#e2e5ea; --ink:#14171c; --dim:#5d6472; --faint:#8b93a3;
+    --ok:#0f7a4d; --ok-bg:#e6f4ec; --run:#1668c7; --run-bg:#e5f0fc;
+    --warn:#8a5a00; --warn-bg:#fdf1dc; --bad:#b3261e; --bad-bg:#fbe9e7;
+    --idle:#5d6472; --idle-bg:#eceef2;
+    --radius:14px;
+  }
+  @media (prefers-color-scheme:dark){
+    :root{
+      --bg:#0e1116; --panel:#161a21; --line:#262b34; --ink:#e8eaee; --dim:#9aa3b2; --faint:#6f7787;
+      --ok:#5fd39b; --ok-bg:#12291f; --run:#6cb2f5; --run-bg:#11212f;
+      --warn:#e8b563; --warn-bg:#2a2113; --bad:#f2877d; --bad-bg:#2d1817;
+      --idle:#9aa3b2; --idle-bg:#1d222a;
+    }
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.55 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+    -webkit-font-smoothing:antialiased}
+  .shell{max-width:1080px;margin:0 auto;padding:28px 18px 64px}
+
+  header{display:flex;flex-wrap:wrap;gap:14px;align-items:baseline;justify-content:space-between;margin-bottom:6px}
+  h1{font-size:23px;font-weight:650;margin:0;letter-spacing:-.01em}
+  .sub{color:var(--dim);font-size:13.5px;margin:2px 0 22px}
+  .beat{display:inline-flex;align-items:center;gap:7px;font-size:12.5px;color:var(--dim);
+    background:var(--panel);border:1px solid var(--line);border-radius:999px;padding:5px 12px;white-space:nowrap}
+  .beat i{width:7px;height:7px;border-radius:50%;background:var(--ok);flex:none}
+  .beat.stale i{background:var(--warn)}
+  .beat.dead i{background:var(--bad)}
+  @keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+  .beat:not(.dead) i{animation:pulse 2.4s ease-in-out infinite}
+
+  h2{font-size:13px;font-weight:650;letter-spacing:.06em;text-transform:uppercase;color:var(--faint);
+    margin:34px 0 12px}
+
+  .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:14px}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px}
+  .card.is-run{border-color:var(--run)}
+  .card.is-bad{border-color:var(--bad)}
+  .card h3{margin:0 0 2px;font-size:17px;font-weight:640}
+  .role{color:var(--faint);font-size:12.5px;margin-bottom:14px}
+
+  .badge{display:inline-flex;align-items:center;gap:8px;border-radius:9px;padding:7px 12px;
+    font-size:13.5px;font-weight:600;margin-bottom:6px}
+  .badge .g{font-size:12px;line-height:1}
+  .b-ok{background:var(--ok-bg);color:var(--ok)}
+  .b-run{background:var(--run-bg);color:var(--run)}
+  .b-warn{background:var(--warn-bg);color:var(--warn)}
+  .b-bad{background:var(--bad-bg);color:var(--bad)}
+  .b-idle{background:var(--idle-bg);color:var(--idle)}
+  .doing{font-size:13.5px;color:var(--dim);margin:8px 0 0}
+
+  dl{margin:16px 0 0;display:grid;grid-template-columns:auto 1fr;gap:7px 16px;font-size:13.5px}
+  dt{color:var(--faint)}
+  dd{margin:0;text-align:right;font-variant-numeric:tabular-nums}
+
+  .made{margin:16px 0 0;padding:13px 0 0;border-top:1px solid var(--line)}
+  .made-t{font-size:12px;color:var(--faint);margin-bottom:8px}
+  .file{display:flex;gap:9px;align-items:baseline;font-size:13px;padding:3px 0}
+  .file b{font-weight:600;color:var(--faint);font-size:11.5px;min-width:38px;flex:none}
+  .path{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12.5px;
+    word-break:break-word;color:var(--ink)}
+  .none{color:var(--faint);font-size:13px;font-style:italic}
+
+  table{width:100%;border-collapse:collapse;font-size:13.5px;background:var(--panel);
+    border:1px solid var(--line);border-radius:var(--radius);overflow:hidden}
+  th{text-align:left;font-weight:600;color:var(--faint);font-size:11.5px;letter-spacing:.05em;
+    text-transform:uppercase;padding:11px 14px;border-bottom:1px solid var(--line)}
+  td{padding:11px 14px;border-bottom:1px solid var(--line);vertical-align:top}
+  tr:last-child td{border-bottom:0}
+  td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap;color:var(--dim)}
+  .tag{display:inline-flex;align-items:center;gap:6px;font-weight:600;white-space:nowrap}
+  .t-ok{color:var(--ok)} .t-bad{color:var(--bad)} .t-run{color:var(--run)} .t-idle{color:var(--dim)}
+  .wrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+
+  .sys{display:grid;gap:9px}
+  .sys .row{display:flex;gap:11px;align-items:baseline;background:var(--panel);border:1px solid var(--line);
+    border-radius:11px;padding:12px 14px}
+  .sys .nm{font-weight:600;font-size:13.5px;min-width:132px;flex:none}
+  .sys .dt{color:var(--dim);font-size:13px}
+
+  .commit{background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:13px 15px;margin-bottom:9px}
+  .commit .top{display:flex;gap:12px;justify-content:space-between;align-items:baseline}
+  .commit .msg{font-size:13.5px;font-weight:560}
+  .commit .when{color:var(--faint);font-size:12px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .commit .fl{margin-top:7px;display:flex;flex-wrap:wrap;gap:5px}
+  .chip{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:11.5px;
+    background:var(--idle-bg);color:var(--dim);border-radius:6px;padding:3px 7px;word-break:break-all}
+
+  footer{margin-top:44px;padding-top:18px;border-top:1px solid var(--line);color:var(--faint);font-size:12.5px}
+  footer p{margin:0 0 7px}
+  .err{background:var(--bad-bg);color:var(--bad);border-radius:11px;padding:15px;font-size:14px}
+  @media (max-width:560px){
+    .shell{padding:20px 13px 48px} h1{font-size:20px}
+    dd{text-align:left} dl{grid-template-columns:1fr;gap:1px 0}
+    dt{margin-top:8px}
+  }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header>
+    <div>
+      <h1>Агенты «Универсал КП»</h1>
+    </div>
+    <span class="beat" id="beat"><i></i><span id="beatText">загрузка…</span></span>
+  </header>
+  <p class="sub">Что агенты делают прямо сейчас, чем закончили прошлые запуски и что успели создать.</p>
+
+  <div id="body"></div>
+
+  <footer>
+    <p>Страница перечитывает данные каждые 20 секунд; счётчики идут в реальном времени. Данные пишет домашний компьютер после каждого запуска агента и раз в 15 минут для проверки связи.</p>
+    <p>Здесь только работа агентов: запуски, результаты и имена созданных файлов. Выручки, числа клиентов, содержимого документов и доступов к серверу на этой странице нет.</p>
+  </footer>
+</div>
+
+<script>
+const AGENTS = {
+  wordstat: { title: 'Постописец', role: 'ищет спрос в Вордстате и пишет черновики статей', doing: 'снимает частотность и пишет черновик' },
+  sales:    { title: 'Продажник',  role: 'считает метрики продукта и готовит действия',     doing: 'проводит торговый период' }
+};
+const STATUS = {
+  running: { cls:'b-run',  tag:'t-run',  g:'●', label:'Работает сейчас' },
+  ok:      { cls:'b-ok',   tag:'t-ok',   g:'✓', label:'Готов, ждёт расписания' },
+  failed:  { cls:'b-bad',  tag:'t-bad',  g:'✕', label:'Последний запуск упал' },
+  never:   { cls:'b-idle', tag:'t-idle', g:'○', label:'Ещё ни разу не запускался' }
+};
+const SYS = {
+  good:    { g:'✓', cls:'t-ok'  },
+  warning: { g:'▲', cls:'t-bad' },
+  bad:     { g:'✕', cls:'t-bad' }
+};
+// Названия и пояснения живут здесь: PowerShell отдаёт только код, уровень и число,
+// потому что скрипт обязан быть ASCII — Windows PowerShell 5.1 читает файл как ANSI.
+const SYS_TEXT = {
+  git: {
+    name: 'Работа зафиксирована',
+    good: () => 'всё сохранено в репозитории, потерять нечего',
+    warning: n => n + ' ' + plural(n,'файл ждёт','файла ждут','файлов ждут') + ' фиксации в репозитории'
+  },
+  tasks: {
+    name: 'Расписание',
+    good: () => 'обе задачи стоят в планировщике и запустятся сами',
+    warning: n => n === 0 ? 'ни одной задачи в планировщике — агенты сами не стартуют'
+                          : 'в планировщике только одна задача из двух'
+  },
+  browser: {
+    name: 'Браузер Вордстата',
+    good: () => 'сессия Яндекса сохранена, спрос снимается без участия человека',
+    warning: () => 'сессии нет — постописец не сможет снять частотность'
+  }
+};
+
+const pad = n => String(n).padStart(2,'0');
+function plural(n, one, few, many){
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return one;
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return few;
+  return many;
+}
+function dur(sec){
+  sec = Math.max(0, Math.round(sec));
+  if (sec < 60) return sec + ' ' + plural(sec,'секунда','секунды','секунд');
+  const m = Math.floor(sec/60);
+  if (m < 60) return m + ' ' + plural(m,'минута','минуты','минут');
+  const h = Math.floor(m/60), r = m % 60;
+  return h + ' ' + plural(h,'час','часа','часов') + (r ? ' ' + r + ' мин' : '');
+}
+function ago(sec){
+  sec = Math.max(0, Math.round(sec));
+  if (sec < 45) return 'только что';
+  return dur(sec) + ' назад';
+}
+function when(iso){
+  if (!iso) return '—';
+  const d = new Date(iso);
+  if (isNaN(d)) return '—';
+  return pad(d.getDate()) + '.' + pad(d.getMonth()+1) + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
+}
+function since(iso){ const d = new Date(iso); return isNaN(d) ? null : (Date.now() - d.getTime())/1000; }
+
+// Дни недели приходят числами (0 — воскресенье): скрипт-сборщик обязан быть ASCII.
+const DOW = ['вс','пн','вт','ср','чт','пт','сб'];
+function scheduleText(a){
+  if (!a.scheduleTime) return null;
+  if (a.scheduleKind === 'weekly' && a.scheduleDays && a.scheduleDays.length){
+    const days = a.scheduleDays.slice().sort((x,y) => ((x+6)%7) - ((y+6)%7)).map(d => DOW[d]);
+    return days.length === 7 ? 'каждый день в ' + a.scheduleTime
+                             : days.join(', ') + ' в ' + a.scheduleTime;
+  }
+  if (a.scheduleKind === 'daily') return 'каждый день в ' + a.scheduleTime;
+  return 'в ' + a.scheduleTime;
+}
+const esc = s => String(s == null ? '' : s).replace(/[&<>"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let DATA = null;
+
+function agentCard(key){
+  const meta = AGENTS[key] || { title:key, role:'', doing:'работает' };
+  const a = (DATA.agents || {})[key] || { status:'never' };
+  const st = STATUS[a.status] || STATUS.never;
+  const cls = a.status === 'running' ? ' is-run' : (a.status === 'failed' ? ' is-bad' : '');
+
+  let doing = '';
+  if (a.status === 'running'){
+    const el = since(a.startedAt);
+    doing = '<p class="doing">Идёт ' + esc(dur(el || 0)) + ' — ' + esc(meta.doing) + '.</p>';
+    if (a.workingOn && a.workingOn.length){
+      doing += '<div class="made"><div class="made-t">Сейчас правит файлы</div>' +
+        a.workingOn.map(p => '<div class="file"><span class="path">' + esc(p) + '</span></div>').join('') + '</div>';
+    }
+  } else if (a.status === 'failed'){
+    doing = '<p class="doing">Запуск завершился с кодом ' + esc(a.exitCode) + '. Агент попробует снова по расписанию.</p>';
+  }
+
+  const rows = [];
+  if (a.finishedAt) rows.push(['Последний запуск', when(a.finishedAt)]);
+  if (a.seconds != null) rows.push(['Длился', dur(a.seconds)]);
+  if (a.nextRun) rows.push(['Следующий запуск', when(a.nextRun)]);
+  const sched = scheduleText(a);
+  if (sched) rows.push(['Расписание', sched]);
+  const dl = rows.length ? '<dl>' + rows.map(r => '<dt>' + esc(r[0]) + '</dt><dd>' + esc(r[1]) + '</dd>').join('') + '</dl>' : '';
+
+  const made = (a.made || []);
+  const madeHtml = '<div class="made"><div class="made-t">Что создал за последние дни</div>' +
+    (made.length
+      ? made.map(f => '<div class="file"><b>' + esc(f.date) + '</b><span class="path">' + esc(f.path) + '</span></div>').join('')
+      : '<div class="none">пока ничего нового</div>') + '</div>';
+
+  return '<div class="card' + cls + '">' +
+    '<h3>' + esc(meta.title) + '</h3>' +
+    '<div class="role">' + esc(meta.role) + '</div>' +
+    '<div class="badge ' + st.cls + '"><span class="g">' + st.g + '</span>' + esc(st.label) + '</div>' +
+    doing + dl + madeHtml + '</div>';
+}
+
+function render(){
+  if (!DATA) return;
+  const parts = [];
+  parts.push('<div class="cards">' + Object.keys(AGENTS).map(agentCard).join('') + '</div>');
+
+  const runs = DATA.runs || [];
+  parts.push('<h2>Хроника запусков</h2>');
+  if (runs.length){
+    parts.push('<div class="wrap"><table><thead><tr><th>Когда</th><th>Агент</th><th>Итог</th><th>Длился</th></tr></thead><tbody>' +
+      runs.map(r => {
+        const st = STATUS[r.status] || STATUS.never;
+        const nm = (AGENTS[r.agent] || {}).title || r.agent;
+        return '<tr><td class="num">' + esc(when(r.finishedAt || r.startedAt)) + '</td>' +
+          '<td>' + esc(nm) + '</td>' +
+          '<td><span class="tag ' + st.tag + '">' + st.g + ' ' + esc(r.status === 'ok' ? 'Успешно' : (r.status === 'running' ? 'Идёт' : 'Ошибка')) + '</span></td>' +
+          '<td class="num">' + esc(r.seconds != null ? dur(r.seconds) : '—') + '</td></tr>';
+      }).join('') + '</tbody></table></div>');
+  } else {
+    parts.push('<p class="none">Запусков пока не было.</p>');
+  }
+
+  const commits = DATA.commits || [];
+  parts.push('<h2>Что сделано</h2>');
+  parts.push(commits.length
+    ? commits.map(c =>
+        '<div class="commit"><div class="top"><span class="msg">' + esc(c.subject) + '</span>' +
+        '<span class="when">' + esc(when(c.date)) + '</span></div>' +
+        (c.files && c.files.length ? '<div class="fl">' + c.files.map(f => '<span class="chip">' + esc(f) + '</span>').join('') + '</div>' : '') +
+        '</div>').join('')
+    : '<p class="none">Изменений пока нет.</p>');
+
+  const sys = DATA.systems || [];
+  if (sys.length){
+    parts.push('<h2>Обеспечение</h2><div class="sys">' + sys.map(s => {
+      const i = SYS[s.level] || SYS.warning;
+      const t = SYS_TEXT[s.code];
+      if (!t) return '';
+      const fn = t[s.level] || t.warning;
+      return '<div class="row"><span class="nm tag ' + i.cls + '">' + i.g + ' ' + esc(t.name) + '</span>' +
+             '<span class="dt">' + esc(fn(s.n)) + '</span></div>';
+    }).join('') + '</div>');
+  }
+
+  document.getElementById('body').innerHTML = parts.join('');
+  tick();
+}
+
+function tick(){
+  if (!DATA) return;
+  const el = document.getElementById('beat'), t = document.getElementById('beatText');
+  const s = since(DATA.generatedAt);
+  if (s == null){ t.textContent = 'нет данных'; el.className = 'beat dead'; return; }
+  el.className = 'beat' + (s > 2400 ? ' dead' : (s > 1500 ? ' stale' : ''));
+  t.textContent = s > 2400
+    ? 'связь с компьютером потеряна, данные от ' + when(DATA.generatedAt)
+    : 'обновлено ' + ago(s);
+}
+
+async function load(){
+  try{
+    const r = await fetch('data.json?t=' + Date.now(), { cache:'no-store' });
+    if (!r.ok) throw new Error('HTTP ' + r.status);
+    DATA = await r.json();
+    render();
+  }catch(e){
+    if (!DATA) document.getElementById('body').innerHTML =
+      '<div class="err">Не удалось загрузить данные (' + esc(e.message) + '). Страница попробует ещё раз через 20 секунд.</div>';
+  }
+}
+load();
+setInterval(load, 20000);
+setInterval(tick, 1000);
+</script>
+</body>
+</html>
